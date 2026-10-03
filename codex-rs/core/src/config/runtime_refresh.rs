@@ -119,6 +119,17 @@ impl Config {
             .features
             .refresh_mcp_features(&features)
             .map_err(std::io::Error::other)?;
+        if !matches!(scope, RuntimeConfigRefresh::Mcp) {
+            // Explanation preferences can change between turns. Resolve from
+            // retained layers so a user-file edit cannot override session flags.
+            config
+                .features
+                .set_enabled(
+                    Feature::KarpathyMode,
+                    features.enabled(Feature::KarpathyMode),
+                )
+                .map_err(std::io::Error::other)?;
+        }
         config.mcp_servers =
             constrain_mcp_servers(servers, layers.requirements().mcp_servers.as_ref())
                 .map_err(std::io::Error::other)?;

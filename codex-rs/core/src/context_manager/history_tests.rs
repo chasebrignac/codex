@@ -1834,6 +1834,7 @@ fn drop_last_n_user_turns_trims_context_updates_above_rolled_back_turn() {
         developer_msg("<collaboration_mode>ROLLED_BACK_DEV_INSTRUCTIONS</collaboration_mode>"),
         developer_msg("<multi_agent_role>ROLLED_BACK_MULTI_AGENT_ROLE</multi_agent_role>"),
         developer_msg("<multi_agent_mode>ROLLED_BACK_MULTI_AGENT_MODE</multi_agent_mode>"),
+        developer_msg("<karpathy_mode>ROLLED_BACK_KARPATHY_MODE</karpathy_mode>"),
         user_input_text_msg(
             "<environment_context><cwd>PRETURN_CONTEXT_DIFF_CWD</cwd></environment_context>",
         ),
@@ -1880,6 +1881,10 @@ fn drop_last_n_user_turns_preserves_annotations_for_surviving_developer_fragment
                     .to_string(),
             },
             ContentItem::InputText {
+                text: "<karpathy_mode>\nPrevious explanation preferences.\n</karpathy_mode>"
+                    .to_string(),
+            },
+            ContentItem::InputText {
                 text: "persistent environment instructions".to_string(),
             },
         ],
@@ -1890,6 +1895,7 @@ fn drop_last_n_user_turns_preserves_annotations_for_surviving_developer_fragment
                 ContentItemKind("generic.developer_instructions".to_string()),
                 ContentItemKind("model_switch.instructions".to_string()),
                 ContentItemKind("persistent_mode.instructions".to_string()),
+                ContentItemKind("karpathy_mode.instructions".to_string()),
                 ContentItemKind("environments.instructions".to_string()),
             ]),
             ..Default::default()

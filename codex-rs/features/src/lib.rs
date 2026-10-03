@@ -148,6 +148,8 @@ pub enum Feature {
     TerminalResizeReflow,
     /// Add terminal-specific visualization guidance to TUI developer instructions.
     TerminalVisualizationInstructions,
+    /// Explain work in plain language with proportionate visual and interactive artifacts.
+    KarpathyMode,
     /// Stream structured progress while apply_patch input is being generated.
     ApplyPatchStreamingEvents,
     /// Preserve existing line endings when apply_patch updates files.
@@ -1712,6 +1714,16 @@ pub const FEATURES: &[FeatureSpec] = &[
         id: Feature::TerminalVisualizationInstructions,
         key: "terminal_visualization_instructions",
         stage: Stage::UnderDevelopment,
+        default_enabled: false,
+    },
+    FeatureSpec {
+        id: Feature::KarpathyMode,
+        key: "karpathy_mode",
+        stage: Stage::Experimental {
+            name: "Karpathy Mode",
+            menu_description: "Use plain language and helpful diagrams, interactive explanations, or videos.",
+            announcement: "Karpathy Mode helps explain work in plain language, with visual or interactive artifacts when useful.",
+        },
         default_enabled: false,
     },
     FeatureSpec {

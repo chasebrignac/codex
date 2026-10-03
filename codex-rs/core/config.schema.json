@@ -971,6 +971,9 @@
             "js_repl_tools_only": {
               "type": "boolean"
             },
+            "karpathy_mode": {
+              "type": "boolean"
+            },
             "local_thread_store_compression": {
               "type": "boolean"
             },
@@ -7124,6 +7127,9 @@
           "type": "boolean"
         },
         "js_repl_tools_only": {
+          "type": "boolean"
+        },
+        "karpathy_mode": {
           "type": "boolean"
         },
         "local_thread_store_compression": {
