@@ -11,6 +11,7 @@ use crate::context::world_state::CompactPermissionsState;
 use crate::context::world_state::ContextWindowGuidanceState;
 use crate::context::world_state::EnvironmentsInstructionsState;
 use crate::context::world_state::EnvironmentsState;
+use crate::context::world_state::KarpathyModeState;
 use crate::context::world_state::ManagedDeveloperInstructionsState;
 use crate::context::world_state::ModelCatalogState;
 use crate::context::world_state::ModelInstructionsState;
@@ -212,6 +213,9 @@ impl Session {
             ));
         }
         if !crate::guardian::is_basic_session_source(&turn_context.session_source) {
+            world_state.add_section(KarpathyModeState::new(
+                turn_context.config.features.enabled(Feature::KarpathyMode),
+            ));
             let send_user_message_async_available =
                 !turn_context.session_source.is_non_root_agent()
                     && step_context

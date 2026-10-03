@@ -39,6 +39,50 @@ fn strict_config_rejects_unknown_config_override() -> Result<()> {
 }
 
 #[test]
+fn karpathy_mode_can_be_overridden_and_persisted() -> Result<()> {
+    let codex_home = TempDir::new()?;
+
+    let assert_listed = |arguments: &[&str], enabled: bool| -> Result<()> {
+        let output = codex_command(codex_home.path())?
+            .args(arguments)
+            .args(["features", "list"])
+            .assert()
+            .success()
+            .get_output()
+            .stdout
+            .clone();
+        let stdout = String::from_utf8(output)?;
+        let feature = stdout
+            .lines()
+            .find(|line| line.starts_with("karpathy_mode "))
+            .context("Karpathy Mode should be listed")?;
+        assert_eq!(
+            feature.split_whitespace().collect::<Vec<_>>(),
+            vec![
+                "karpathy_mode",
+                "experimental",
+                if enabled { "true" } else { "false" }
+            ]
+        );
+        Ok(())
+    };
+
+    assert_listed(&[], false)?;
+    assert_listed(&["--enable", "karpathy_mode"], true)?;
+    assert_listed(&[], false)?;
+
+    for (action, enabled) in [("enable", true), ("disable", false)] {
+        codex_command(codex_home.path())?
+            .args(["features", action, "karpathy_mode"])
+            .assert()
+            .success();
+        assert_listed(&[], enabled)?;
+    }
+
+    Ok(())
+}
+
+#[test]
 fn mcp_list_reports_invalid_keybinding_reason() -> Result<()> {
     for bindings in ["'backslash'", "['backslash']"] {
         let codex_home = TempDir::new()?;

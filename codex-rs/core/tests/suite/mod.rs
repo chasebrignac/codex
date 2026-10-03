@@ -123,6 +123,7 @@ mod injected_models_cache;
 mod interrupt_hooks;
 mod items;
 mod json_result;
+mod karpathy_mode;
 mod live_cli;
 #[path = "managed_threads_tests.rs"]
 mod managed_threads;

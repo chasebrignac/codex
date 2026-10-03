@@ -15,6 +15,7 @@ mod user_authorization;
 use crate::context::ContextualUserFragment;
 use crate::context::ModelSwitchInstructions;
 use crate::context::is_guardian_context_message;
+use crate::context::world_state::KarpathyModeState;
 use crate::context::world_state::PersistentModeState;
 use crate::context::world_state::WorldState;
 use crate::context::world_state::WorldStateSnapshot;
@@ -815,12 +816,13 @@ impl ContextManager {
                         return false;
                     };
                     content.retain(|content| {
-                        // Rebuild these from the next step's model and effort after rollback.
+                        // Rebuild these from the next step's model, effort, and preferences.
                         !matches!(
                             content.content(),
                             ContentItem::InputText { text }
                                 if ModelSwitchInstructions::matches_text(text)
                                     || PersistentModeState::matches_text(text)
+                                    || KarpathyModeState::matches_text(text)
                         )
                     });
                     !content.is_empty() && set_annotated_content(&mut item.item, content).is_some()

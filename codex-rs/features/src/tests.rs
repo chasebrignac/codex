@@ -15,6 +15,22 @@ use toml::Table;
 use toml::Value as TomlValue;
 
 #[test]
+fn karpathy_mode_is_an_opt_in_experimental_feature() {
+    let mut features = Features::with_defaults();
+    assert!(!features.enabled(Feature::KarpathyMode));
+    assert_eq!(
+        Feature::KarpathyMode.stage().experimental_menu_name(),
+        Some("Karpathy Mode")
+    );
+
+    for enabled in [true, false] {
+        let config: FeaturesToml = toml::from_str(&format!("karpathy_mode = {enabled}")).unwrap();
+        features.apply_toml(&config);
+        assert_eq!(features.enabled(Feature::KarpathyMode), enabled);
+    }
+}
+
+#[test]
 fn sleep_tool_config_rejects_unknown_mode() {
     assert!(toml::from_str::<FeaturesToml>("[sleep_tool]\nmode = 'off'").is_err());
 }

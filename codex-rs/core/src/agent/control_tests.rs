@@ -3812,6 +3812,7 @@ async fn spawn_agent_fork_last_n_turns_drops_parent_startup_prefix_when_under_li
 async fn spawn_agent_fork_last_n_turns_strips_parent_usage_hints() {
     let persistent_fragment =
         "<persistent_mode>\nParent persistent instructions.\n</persistent_mode>";
+    let karpathy_fragment = "<karpathy_mode>\nParent explanation preferences.\n</karpathy_mode>";
     let harness = AgentControlHarness::new().await;
     let mut parent_config = harness.config.clone();
     let _ = parent_config.features.enable(Feature::MultiAgentV2);
@@ -3865,6 +3866,9 @@ async fn spawn_agent_fork_last_n_turns_strips_parent_usage_hints() {
                         },
                         ContentItem::InputText {
                             text: persistent_fragment.to_string(),
+                        },
+                        ContentItem::InputText {
+                            text: karpathy_fragment.to_string(),
                         },
                     ],
                     phase: None,
@@ -3931,6 +3935,10 @@ async fn spawn_agent_fork_last_n_turns_strips_parent_usage_hints() {
     assert!(
         !history_contains_text(history.raw_items(), persistent_fragment),
         "bounded fork should remove persistent instructions before rebuilding context for the child's effort"
+    );
+    assert!(
+        !history_contains_text(history.raw_items(), karpathy_fragment),
+        "bounded fork should remove explanation preferences before rebuilding the child's context"
     );
     assert!(
         history_contains_text(history.raw_items(), "Preserved bounded developer context."),

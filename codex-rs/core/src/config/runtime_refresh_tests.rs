@@ -4,8 +4,10 @@ use super::*;
 use crate::config::ConfigBuilder;
 use codex_config::CONFIG_TOML_FILE;
 use codex_config::ConfigLayerSource;
+use codex_config::LoaderOverrides;
 use codex_config::test_support::CloudConfigBundleFixture;
 use codex_core_plugins::PluginLoadOutcome;
+use codex_utils_absolute_path::AbsolutePathBuf;
 use pretty_assertions::assert_eq;
 
 async fn base_config() -> (tempfile::TempDir, Config) {
@@ -40,6 +42,90 @@ async fn layered_config(
         .build()
         .await
         .unwrap()
+}
+
+#[test_case::test_case(RuntimeConfigRefresh::User; "user refresh")]
+#[test_case::test_case(RuntimeConfigRefresh::UserFiles; "user file refresh")]
+#[tokio::test]
+async fn karpathy_mode_follows_user_config_refresh(scope: RuntimeConfigRefresh) {
+    let (_home, base) = base_config().await;
+    let mut current = base.clone();
+    for enabled in [true, false, true] {
+        let incoming = layered_config(
+            &base,
+            &format!("[features]\nkarpathy_mode = {enabled}"),
+            "",
+            "",
+            "",
+        )
+        .await;
+        current = current.resolve_runtime_refresh(&incoming, scope).unwrap();
+        assert_eq!(current.features.enabled(Feature::KarpathyMode), enabled);
+    }
+}
+
+#[test_case::test_case(RuntimeConfigRefresh::User; "user refresh")]
+#[test_case::test_case(RuntimeConfigRefresh::UserFiles; "user file refresh")]
+#[tokio::test]
+async fn karpathy_mode_refresh_preserves_session_override(scope: RuntimeConfigRefresh) {
+    let (_home, base) = base_config().await;
+    let current = layered_config(
+        &base,
+        "[features]\nkarpathy_mode = false",
+        "",
+        "",
+        "[features]\nkarpathy_mode = true",
+    )
+    .await;
+    let incoming = layered_config(&base, "[features]\nkarpathy_mode = false", "", "", "").await;
+    let refreshed = current.resolve_runtime_refresh(&incoming, scope).unwrap();
+    assert!(refreshed.features.enabled(Feature::KarpathyMode));
+}
+
+#[tokio::test]
+async fn karpathy_mode_is_unchanged_by_mcp_refresh() {
+    let (_home, base) = base_config().await;
+    let current = layered_config(&base, "[features]\nkarpathy_mode = true", "", "", "").await;
+    let incoming = layered_config(&base, "[features]\nkarpathy_mode = false", "", "", "").await;
+    let refreshed = current
+        .resolve_runtime_refresh(&incoming, RuntimeConfigRefresh::Mcp)
+        .unwrap();
+    assert!(refreshed.features.enabled(Feature::KarpathyMode));
+}
+
+#[tokio::test]
+async fn karpathy_mode_refresh_uses_selected_user_profile() {
+    let (home, mut current) = base_config().await;
+    let selected_config = home.path().join("work.config.toml");
+    std::fs::write(
+        home.path().join(CONFIG_TOML_FILE),
+        "[features]\nkarpathy_mode = false",
+    )
+    .unwrap();
+    for enabled in [true, false] {
+        std::fs::write(
+            &selected_config,
+            format!("[features]\nkarpathy_mode = {enabled}"),
+        )
+        .unwrap();
+        let incoming = ConfigBuilder::without_managed_config_for_tests()
+            .codex_home(home.path().to_path_buf())
+            .fallback_cwd(Some(home.path().to_path_buf()))
+            .loader_overrides(LoaderOverrides {
+                user_config_path: Some(
+                    AbsolutePathBuf::from_absolute_path(&selected_config).unwrap(),
+                ),
+                user_config_profile: Some("work".parse().unwrap()),
+                ..LoaderOverrides::without_managed_config_for_tests()
+            })
+            .build()
+            .await
+            .unwrap();
+        current = current
+            .resolve_runtime_refresh(&incoming, RuntimeConfigRefresh::User)
+            .unwrap();
+        assert_eq!(current.features.enabled(Feature::KarpathyMode), enabled);
+    }
 }
 
 fn enterprise_config(issuer: &str, resource: &str) -> String {

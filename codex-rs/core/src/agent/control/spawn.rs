@@ -20,6 +20,7 @@ use crate::context::DeveloperInstructions;
 use crate::context::ManagedDeveloperInstructions;
 use crate::context::MultiAgentModeInstructions;
 use crate::context::MultiAgentRoleInstructions;
+use crate::context::world_state::KarpathyModeState;
 use crate::context::world_state::PersistentModeState;
 use crate::session::multi_agents::resolve_usage_hints;
 use codex_context_fragments::set_annotated_content;
@@ -1104,10 +1105,11 @@ impl LocalAgentControl {
                     };
                     if ManagedDeveloperInstructions::matches_text(text)
                         || PersistentModeState::matches_text(text)
+                        || KarpathyModeState::matches_text(text)
                     {
                         // If the child will rebuild its initial context, drop the inherited
-                        // instructions; startup will add the current requirements and effort
-                        // instructions once.
+                        // instructions; startup will add the current requirements, effort,
+                        // and explanation preferences once.
                         return preserve_context_baselines;
                     }
                     let (
