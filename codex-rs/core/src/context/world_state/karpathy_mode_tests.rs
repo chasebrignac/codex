@@ -77,7 +77,7 @@ fn changed_instructions_replace_the_previous_version() {
     let (snapshot, _) = previous.render_full();
     let history = [ContextualUserFragment::into(previous_instructions)];
     let mut current = WorldState::default();
-    current.add_section(KarpathyModeState::new(true));
+    current.add_section(KarpathyModeState::new(/*enabled*/ true));
 
     assert_eq!(
         current

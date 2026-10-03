@@ -122,12 +122,12 @@ async fn karpathy_mode_runtime_refresh_retires_instructions_without_repeating_up
     .await;
     let test = test_codex().build_with_auto_env(&server).await?;
     test.submit_turn("mode is initially off").await?;
-    refresh_mode(&test, true).await?;
+    refresh_mode(&test, /*enabled*/ true).await?;
     test.submit_turn("enable visual explanations").await?;
-    refresh_mode(&test, false).await?;
+    refresh_mode(&test, /*enabled*/ false).await?;
     test.submit_turn("return to normal explanations").await?;
     test.submit_turn("keep normal explanations").await?;
-    refresh_mode(&test, true).await?;
+    refresh_mode(&test, /*enabled*/ true).await?;
     test.submit_turn("enable visual explanations again").await?;
 
     let requests = responses.requests();
